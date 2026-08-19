@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrewScan — Point. Scan. Brew.</title>
+  <meta name="description" content="The AI-powered Nespresso companion. Scan any pod, discover taste profiles, and brew the perfect cup every time.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0F0905;
+      --bg2: #1A0F0A;
+      --bg3: #221408;
+      --gold: #C8860A;
+      --gold-light: #E8A020;
+      --gold-dim: #8A5C07;
+      --white: #F5EFE6;
+      --muted: #7A6858;
+      --card: #1E120C;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(ellipse, rgba(200,134,10,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 120px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(200,134,10,0.12);
+      border: 1px solid rgba(200,134,10,0.3);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 32px;
+    }
+
+    .hero-icon {
+      font-size: 88px;
+      line-height: 1;
+      margin-bottom: 24px;
+      display: block;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: clamp(40px, 8vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #F5EFE6 0%, #C8860A 60%, #8A5C07 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: clamp(17px, 2.5vw, 21px);
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.6;
+      margin-bottom: 48px;
+      font-weight: 400;
+    }
+
+    .tagline em {
+      color: var(--gold);
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    /* ─── WAITLIST FORM ─── */
+    .waitlist-wrap {
+      width: 100%;
+      max-width: 460px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .waitlist-form {
+      display: flex;
+      gap: 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(200,134,10,0.25);
+      border-radius: 14px;
+      padding: 6px;
+      backdrop-filter: blur(10px);
+    }
+
+    .waitlist-form input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--white);
+      font-size: 15px;
+      padding: 12px 16px;
+    }
+
+    .waitlist-form input::placeholder { color: var(--muted); }
+
+    .waitlist-form button {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #0F0905;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .waitlist-form button:hover { opacity: 0.9; transform: scale(1.02); }
+    .waitlist-form button:active { transform: scale(0.98); }
+
+    .waitlist-sub {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .success-msg {
+      display: none;
+      background: rgba(200,134,10,0.15);
+      border: 1px solid rgba(200,134,10,0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--gold-light);
+      text-align: center;
+    }
+
+    /* ─── PHONE MOCKUP ─── */
+    .phone-section {
+      padding: 80px 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .phone {
+      width: 260px;
+      height: 520px;
+      background: #1A0F0A;
+      border-radius: 44px;
+      border: 2px solid rgba(200,134,10,0.3);
+      box-shadow:
+        0 0 0 8px #0F0905,
+        0 0 0 10px rgba(200,134,10,0.15),
+        0 60px 120px rgba(0,0,0,0.8),
+        0 0 80px rgba(200,134,10,0.08);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-notch {
+      width: 80px; height: 24px;
+      background: #0F0905;
+      border-radius: 0 0 16px 16px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .phone-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .scan-ring {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    .scan-ring::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,134,10,0.2);
+    }
+
+    .scan-ring::after {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,134,10,0.08);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(200,134,10,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(200,134,10,0); }
+    }
+
+    .pod-emoji { font-size: 52px; }
+
+    .scan-label {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .pod-card {
+      width: 100%;
+      background: rgba(200,134,10,0.08);
+      border: 1px solid rgba(200,134,10,0.2);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .pod-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .pod-notes { font-size: 10px; color: var(--muted); }
+    .intensity-bar {
+      margin-top: 8px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .intensity-fill {
+      height: 100%;
+      width: 80%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
+      border-radius: 2px;
+    }
+
+    /* ─── FEATURES ─── */
+    .features {
+      padding: 80px 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin-bottom: 60px;
+      line-height: 1.15;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 28px;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(200,134,10,0.25);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── STATS ─── */
+    .stats {
+      padding: 80px 24px;
+      background: linear-gradient(135deg, #1A0F0A, #110A05);
+      border-top: 1px solid rgba(200,134,10,0.1);
+      border-bottom: 1px solid rgba(200,134,10,0.1);
+    }
+
+    .stats-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: clamp(36px, 6vw, 52px);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .how {
+      padding: 80px 24px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 60px;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 27px; top: 28px; bottom: 28px;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--gold-dim), transparent);
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      padding-bottom: 44px;
+    }
+
+    .step:last-child { padding-bottom: 0; }
+
+    .step-num {
+      width: 54px; height: 54px;
+      min-width: 54px;
+      border-radius: 50%;
+      background: rgba(200,134,10,0.12);
+      border: 1px solid rgba(200,134,10,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-content h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      margin-top: 12px;
+    }
+
+    .step-content p {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── BOTTOM CTA ─── */
+    .cta-section {
+      padding: 100px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(200,134,10,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .cta-section p {
+      font-size: 17px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 32px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    footer span { color: var(--gold-dim); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .stats-inner { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .stat-number { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="badge">☕ Coming soon to iOS</div>
+  <span class="hero-icon">☕</span>
+  <h1>Point. Scan.<br>Brew.</h1>
+  <p class="tagline">
+    The AI-powered Nespresso companion.<br>
+    <em>Scan any pod</em>, discover its taste profile, and unlock the perfect recipe — instantly.
+  </p>
+
+  <div class="waitlist-wrap">
+    <div class="waitlist-form" id="form-wrap">
+      <input type="email" id="email-input" placeholder="your@email.com" autocomplete="email" />
+      <button onclick="joinWaitlist()">Notify Me 🚀</button>
+    </div>
+    <div class="success-msg" id="success-msg">
+      🎉 You're on the list! We'll let you know the moment it's live.
+    </div>
+    <p class="waitlist-sub">No spam. Just a ping when we launch.</p>
+  </div>
+</section>
+
+<!-- ─── PHONE MOCKUP ─── -->
+<section class="phone-section">
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="scan-ring">
+        <span class="pod-emoji">🟤</span>
+      </div>
+      <p class="scan-label">Scanning…</p>
+      <div class="pod-card">
+        <div class="pod-name">Ristretto Italiano</div>
+        <div class="pod-notes">Roasted, Powerful, Full-bodied</div>
+        <div class="intensity-bar"><div class="intensity-fill"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STATS ─── -->
+<section class="stats">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-number">40+</div>
+      <div class="stat-label">Pods in catalog</div>
+    </div>
+    <div>
+      <div class="stat-number">15</div>
+      <div class="stat-label">Curated recipes</div>
+    </div>
+    <div>
+      <div class="stat-number">AI</div>
+      <div class="stat-label">Vision scanning</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section class="features">
+  <p class="section-label">What you get</p>
+  <h2 class="section-title">Everything a Nespresso lover needs</h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📷</span>
+      <div class="feature-title">AI Pod Scanner</div>
+      <div class="feature-desc">Point your camera at any Nespresso pod. GPT-4o vision identifies the exact pod and line in seconds — Original or Vertuo.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">☕</span>
+      <div class="feature-title">Taste Profiles</div>
+      <div class="feature-desc">Detailed tasting notes, intensity meter, origin, roast level, and aroma profile. Know exactly what you're brewing before you brew it.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🍹</span>
+      <div class="feature-title">Drink Recipes</div>
+      <div class="feature-desc">15 handcrafted recipes — from classic espresso to cortados and lattes — each matched to the pods that make them shine.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📚</span>
+      <div class="feature-title">Full Pod Catalog</div>
+      <div class="feature-desc">Browse all 40+ Original and Vertuo pods with rich detail. Discover new favorites without leaving the app.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💾</span>
+      <div class="feature-title">Save Your Scans</div>
+      <div class="feature-desc">Keep a personal history of every pod you've scanned. Add notes, rate your brews, and build your own collection.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🌑</span>
+      <div class="feature-title">Premium Dark UI</div>
+      <div class="feature-desc">Built with the same dark, rich aesthetic as the coffee it's made for. Feels right at home next to your Nespresso machine.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how">
+  <p class="section-label">How it works</p>
+  <h2 class="section-title">Three steps to the perfect cup</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Point your camera</h3>
+        <p>Open BrewScan and aim your camera at any Nespresso pod. Works with Original and Vertuo line pods.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>AI identifies it instantly</h3>
+        <p>Our GPT-4o vision model scans the pod color, label, and shape — and returns the exact pod name, line, and full taste profile in seconds.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Brew with confidence</h3>
+        <p>See tasting notes, intensity, recommended cup size, and matched recipes. Brew knowing exactly what you're making.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── BOTTOM CTA ─── -->
+<section class="cta-section">
+  <h2>Get early access</h2>
+  <p>Be the first to know when BrewScan drops on the App Store.</p>
+
+  <div style="max-width:460px; margin: 0 auto;">
+    <div class="waitlist-form" id="form-wrap-2">
+      <input type="email" id="email-input-2" placeholder="your@email.com" autocomplete="email" />
+      <button onclick="joinWaitlist2()">I'm In ☕</button>
+    </div>
+    <div class="success-msg" id="success-msg-2">
+      🎉 You're on the list! Talk soon.
+    </div>
+    <p class="waitlist-sub" style="margin-top:12px;">No spam. Just a ping when we launch.</p>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  Made with ☕ by <span>Sunnydays</span> · BrewScan is not affiliated with Nespresso®
+</footer>
+
+<script>
+  async function submitEmail(email, successId, formId) {
+    if (!email || !email.includes('@')) {
+      alert('Enter a valid email address.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      document.getElementById(formId).style.display = 'none';
+      document.getElementById(successId).style.display = 'block';
+    } catch (e) {
+      alert('Something went wrong. Try again!');
+    }
+  }
+
+  function joinWaitlist() {
+    const email = document.getElementById('email-input').value.trim();
+    submitEmail(email, 'success-msg', 'form-wrap');
+  }
+
+  function joinWaitlist2() {
+    const email = document.getElementById('email-input-2').value.trim();
+    submitEmail(email, 'success-msg-2', 'form-wrap-2');
+  }
+
+  document.getElementById('email-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') joinWaitlist();
+  });
+  document.getElementById('email-input-2').addEventListener('keydown', e => {
+    if (e.key === 'Enter') joinWaitlist2();
+  });
+</script>
+</body>
+</html>
